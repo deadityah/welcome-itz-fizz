@@ -1,0 +1,235 @@
+@import "tailwindcss";
+
+:root {
+  /* Background: Calm, deep charcoal-slate background */
+  --bg-color: #0d0f14;
+  --bg: var(--bg-color);
+  --bg-card: #10131c;
+
+  /* Train layout scale */
+  --train-scale: 0.7;
+
+  /* Track Line: Crisp high-speed steel */
+  --track-color: #dce7f5;
+  --track-glow: rgba(200, 225, 255, 0.35);
+
+  /* One Bold Accent: Kinetic High-Speed Ember */
+  --accent: #ff5500;
+  --accent-rgb: 255, 85, 0;
+  --accent-glow: rgba(255, 85, 0, 0.35);
+  --accent-subtle: rgba(255, 85, 0, 0.15);
+
+  /* Typography */
+  --text-headline: #f2f4f8;
+  --text-muted: #7e879b;
+  --text-dim: #444b5d;
+
+  /* Train SVG Styling */
+  --train-body: #161820;
+  --train-body-light: #212532;
+  --train-window: #090a0d;
+  --train-window-rim: #2d3345;
+  --train-stripe: var(--accent);
+}
+
+@theme inline {
+  --color-background: var(--bg-color);
+  --color-foreground: var(--text-headline);
+  --font-sans: var(--font-space-grotesk);
+  --font-mono: var(--font-jetbrains-mono);
+  --font-space-grotesk: var(--font-space-grotesk);
+  --font-jetbrains-mono: var(--font-jetbrains-mono);
+  --font-display: var(--font-syncopate);
+}
+
+html,
+body {
+  min-height: 100svh;
+  overflow-x: hidden;
+  background-color: var(--bg-color);
+  color: var(--text-headline);
+  user-select: none;
+}
+
+/* 
+ * STRUCTURE & GLOW (Three layers, never mix transforms)
+ * - OUTER wrapper: positioned by the grid. GSAP intro animates this.
+ * - INNER article (tabIndex 0): the CSS hover lift and scale live here.
+ * - Glow: a ::before on the INNER article with isolation: isolate.
+ * - Outside only: A non-inset box-shadow cannot draw inside its own box.
+ *   No inset shadows, no gradients, no filter: blur.
+ */
+.stat-card-inner {
+  position: relative;
+  isolation: isolate;
+  background-color: #10131c;
+  border-radius: 0.75rem; /* rounded-xl */
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: transform 300ms ease-out, border-color 300ms ease-out;
+  transform: translateY(0) scale(1);
+}
+
+.stat-card-inner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 0 20px 2px rgba(244, 241, 234, 0.16),
+              0 0 56px 10px rgba(244, 241, 234, 0.07);
+  transition: opacity 300ms ease-out;
+}
+
+@media (hover: hover) {
+  .stat-card-inner:hover {
+    transform: translateY(-6px) scale(1.04);
+    border-color: rgba(244, 241, 234, 0.28);
+  }
+  .stat-card-inner:hover::before {
+    opacity: 1;
+  }
+}
+
+.stat-card-inner:focus-visible {
+  outline: 2px solid rgba(244, 241, 234, 0.4);
+  outline-offset: 2px;
+  transform: translateY(-6px) scale(1.04);
+  border-color: rgba(244, 241, 234, 0.28);
+}
+
+.stat-card-inner:focus-visible::before {
+  opacity: 1;
+}
+
+.stat-card-inner[aria-expanded="true"] {
+  border-color: rgba(244, 241, 234, 0.28);
+}
+
+.stat-card-inner[aria-expanded="true"]::before {
+  opacity: 1;
+}
+
+/* 
+ * Hover sequence:
+ * - Card body opens with grid: grid-template-rows 0fr -> 1fr, 350ms ease-out
+ * - Hidden wrapper has min-height 0, overflow hidden
+ * - Short description fades in
+ */
+.stat-card-expand {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 350ms ease-out;
+}
+
+.stat-card-inner:hover .stat-card-expand,
+.stat-card-inner:focus-visible .stat-card-expand,
+.stat-card-inner[aria-expanded="true"] .stat-card-expand {
+  grid-template-rows: 1fr;
+}
+
+.stat-card-expand-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.stat-card-desc {
+  opacity: 0;
+  transition: opacity 300ms ease-out;
+}
+
+.stat-card-inner:hover .stat-card-desc,
+.stat-card-inner:focus-visible .stat-card-desc,
+.stat-card-inner[aria-expanded="true"] .stat-card-desc {
+  opacity: 1;
+}
+
+/* Blinking caret with a CSS ::after until typing ends */
+.typing-caret::after {
+  content: "";
+  display: inline-block;
+  width: 2px;
+  height: 1.05em;
+  background-color: #ff5a1f;
+  margin-left: 3px;
+  vertical-align: -0.15em;
+  animation: blink-caret 0.75s step-end infinite;
+}
+
+@keyframes blink-caret {
+  from,
+  to {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Hero 5-Row Grid Layout */
+.hero-grid {
+  display: grid;
+  height: 100svh;
+  max-height: 100svh;
+  overflow-x: hidden;
+  grid-template-rows: auto minmax(0, 1fr) clamp(110px, 19svh, 190px) minmax(0, 1fr) auto;
+}
+
+/* Below 760px screen height: smaller value size, description 13px */
+@media (max-height: 759px) {
+  .stat-card-inner {
+    padding: 0.625rem 0.875rem !important;
+  }
+  .stat-card-value {
+    font-size: clamp(1.4rem, 3.8vh, 2.2rem) !important;
+    line-height: 1.1 !important;
+  }
+  .stat-card-desc {
+    font-size: 13px !important;
+    line-height: 1.35 !important;
+  }
+}
+
+/* Scenic Background Night Ambience */
+@keyframes star-twinkle {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes moon-breathe {
+  0%, 100% {
+    opacity: 0.75;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+.star-shimmer {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: star-twinkle 4s ease-in-out infinite alternate;
+}
+
+.moon-glow-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: moon-breathe 6s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .star-shimmer,
+  .moon-glow-pulse {
+    animation: none !important;
+  }
+}
+
